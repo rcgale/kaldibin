@@ -1,6 +1,9 @@
-from distutils.core import setup
+import setuptools
 
-setup(
+# with open("README.md", "r") as fh:
+#     long_description = fh.read()
+
+setuptools.setup(
     name='kaldibin',
     version='0.1.0',
     author='Robert Gale',
@@ -9,11 +12,8 @@ setup(
         'kaldibin',
         'kaldibin.adapters',
     ],
-    url='https://www.github.com/galer/kaldibin',
-    entry_points={
-        'console_scripts': [
-        ],
-    },
-    install_requires=[
-    ],
+    url='https://github.com/rcgale/kaldibin',
+    description='Python wrappers for Kaldi executables. Still in a partially-implemented, proof-of-concept stage.',
+    install_requires=[],
 )
+
