@@ -50,4 +50,4 @@ def _get_specifier_type(filename):
     elif filename.endswith('.ark'):
         return 'ark'
     else:
-        return 'ark'
+        return None

@@ -71,8 +71,10 @@ def _prepare_args(kaldi_context, args):
         elif _is_rwspecifier(arg):
             if hasattr(arg, "is_gz") and arg.is_gz:
                 prepared.append('{}:gunzip -c {}|'.format(arg.rxtype, arg.filename))
-            else:
+            elif arg.rxtype:
                 prepared.append('{}:{}'.format(arg.rxtype, arg.filename))
+            else:
+                prepared.append(arg.filename)
         else:
             prepared.append(str(arg))
     return prepared, fifos
