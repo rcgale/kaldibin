@@ -5,6 +5,7 @@ import subprocess
 
 class KaldiPipe(object):
     def __init__(self, process, rxtype):
+        self.wait = process.wait
         self.out_stream = process.stdout
         self.rxtype = rxtype
 
