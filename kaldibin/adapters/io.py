@@ -4,7 +4,7 @@ import subprocess
 
 
 class KaldiPipe(object):
-    def __init__(self, process, rxtype):
+    def __init__(self, process, *_, rxtype):
         self.wait = process.wait
         self.out_stream = process.stdout
         self.rxtype = rxtype
@@ -19,11 +19,9 @@ class KaldiPipe(object):
 
 
 class KaldiFile(object):
-    def __init__(self, filename, rxtype=None, is_gz=False):
+    def __init__(self, filename, *_, rxtype, is_gz=False):
         self.filename = filename
         self.is_gz = is_gz
-        if rxtype is None:
-            rxtype = _get_specifier_type(filename)
         self.rxtype = rxtype
 
     def __getstate__(self):
@@ -34,20 +32,11 @@ class KaldiFile(object):
 
 
 class KaldiGzFile(KaldiFile):
-    def __init__(self, filename, rxtype):
+    def __init__(self, filename, *_, rxtype):
         super().__init__(filename, rxtype=rxtype, is_gz=True)
 
 
 class KaldiBytes(object):
-    def __init__(self, bytes, rxtype):
+    def __init__(self, bytes, *_, rxtype):
         self.bytes = bytes
         self._rxtype = rxtype
-
-
-def _get_specifier_type(filename):
-    if filename.endswith('.scp'):
-        return 'scp'
-    elif filename.endswith('.ark'):
-        return 'ark'
-    else:
-        return None
