@@ -50,7 +50,7 @@ class KaldiContext(object):
             threading.Thread(target=_write_fifo, args=(arg, fifo)).start()
 
         if wxfilename == '-':
-            pipe_out = KaldiPipe(process, wxtype)
+            pipe_out = KaldiPipe(process, rxtype=wxtype)
             self._to_close.append(pipe_out)
             return pipe_out
         else:
