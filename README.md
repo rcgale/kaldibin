@@ -27,6 +27,8 @@ Would be cool to get the compiled executables packaged in a wheel or however it'
 
 ## Example
 
+### Getting alignments and confidence scores from a lattice file
+
 ```python
 import os
 import kaldibin
