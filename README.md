@@ -27,22 +27,30 @@ Would be cool to get the compiled executables packaged in a wheel or however it'
 
 ## Example
 
-Some preparatory work:
-
 ```python
 import os
 import kaldibin
 
-DIR = '/path/to/recipe/chain_train_1'
+'''
+Store our experiment directory to resolve the filenames used below.
+'''
 
-# Get the id -> word mapping
+DIR = '/path/to/recipe/exp/chain_train_1'
+
+'''
+Prep work: get the id -> word mapping
+'''
+
 with open(os.path.join(DIR, 'graph/words.txt')) as words_file:
     word_lookup = { id: word for word, id in [l.split() for l in words_file] }
-```
 
-The lattice in our example is a Kaldi archive `*.ark` file, gzipped. We'll initialize it as the `KaldiGzFile` type in the package. The lexicon and model don't use the [rspecifier](https://kaldi-asr.org/doc/io.html) format, so we can call them a `KaldiFile` with no type, or simply provide a string.
+'''
+The lattice in our example is a Kaldi archive `*.ark` file, gzipped. We'll
+initialize it as the `KaldiGzFile` type in the package. The lexicon and model
+don't use the rspecifier format, so we can call them a `KaldiFile` with no
+type, or simply provide a string.
+'''
 
-```python
 lattice_filename = os.path.join(DIR, 'decode_test/lat.1.gz')
 lattice = kaldibin.KaldiGzFile(lattice_filename, rxtype='ark')
 
@@ -50,23 +58,26 @@ lexicon_filename = os.path.join(DIR, 'graph/phones/align_lexicon.int')
 lexicon = kaldibin.KaldiFile(lexicon_filename, rxtype=None)
 
 model = os.path.join(DIR, 'final.mdl')  # Filename with no rxspecifier; wrapping in KaldiFile() is optional.
-```
 
+'''
 Now we can obtain alignments from the lattice with `lattice-align-words-lexicon`.
+'''
 
-```python
 word_alignments = kaldibin.lattice_align_words_lexicon(lexicon, model, lattice)
-```
 
-Note that `word_alignments` is a `KaldiPipe` which can be fed to another `kaldibin` function, and executes (once) only when read. For example, here we convert the alignments to CTM format for human readability.
+'''
+Note that `word_alignments` is a `KaldiPipe` which can be fed to another
+`kaldibin` function, and executes (once) only when read. For example, here we
+convert the alignments to CTM format for human readability.
+'''
 
-```python
 ctms = kaldibin.lattice_to_ctm_conf(word_alignments)
-```
 
-This also returns a `KaldiPipe`, but we can use the `.bytes()` method to bring it into a Python variable.
+'''
+This also returns a `KaldiPipe`, but we can use the `.bytes()` method to
+bring it into a Python variable.
+'''
 
-```python
 ctm_lines = ctms.bytes().decode('utf-8')
 
 for ctm_line in ctm_lines.split('\n'):
