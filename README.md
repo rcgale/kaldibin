@@ -30,20 +30,19 @@ Would be cool to get the compiled executables packaged in a wheel or however it'
 ### Getting alignments and confidence scores from a lattice file
 
 ```python
-import os
 import kaldibin
 
 '''
 Store our experiment directory to resolve the filenames used below.
 '''
 
-DIR = '/path/to/recipe/exp/chain_train_1'
+DIR = '/path/to/recipe/exp/chain_train_1/'
 
 '''
 Prep work: get the id -> word mapping
 '''
 
-with open(os.path.join(DIR, 'graph/words.txt')) as words_file:
+with open(DIR + 'graph/words.txt') as words_file:
     word_lookup = { id: word for word, id in [l.split() for l in words_file] }
 
 '''
@@ -53,13 +52,9 @@ don't use the rspecifier format, so we can call them a `KaldiFile` with no
 type, or simply provide a string.
 '''
 
-lattice_filename = os.path.join(DIR, 'decode_test/lat.1.gz')
-lattice = kaldibin.KaldiGzFile(lattice_filename, rxtype='ark')
-
-lexicon_filename = os.path.join(DIR, 'graph/phones/align_lexicon.int')
-lexicon = kaldibin.KaldiFile(lexicon_filename, rxtype=None)
-
-model = os.path.join(DIR, 'final.mdl')  # Filename with no rxspecifier; wrapping in KaldiFile() is optional.
+lattice = kaldibin.KaldiGzFile(DIR + 'decode_test/lat.1.gz', rxtype='ark')
+lexicon = kaldibin.KaldiFile(DIR + 'graph/phones/align_lexicon.int', rxtype=None)
+model = DIR + 'final.mdl'  # Filename with no rxspecifier; wrapping in KaldiFile() is optional.
 
 '''
 Now we can obtain alignments from the lattice with `lattice-align-words-lexicon`.
