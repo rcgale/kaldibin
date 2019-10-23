@@ -35,7 +35,7 @@ import kaldibin
 # Store our experiment directory to resolve the filenames used below.
 DIR = '/path/to/recipe/exp/chain_train_1/'
 
-# Build an id -> word mapping
+# Build a labelid -> word mapping from words.txt
 with open(DIR + 'graph/words.txt') as words_file:
     word_lookup = { id: word for word, id in [l.split() for l in words_file] }
 
