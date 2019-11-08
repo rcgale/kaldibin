@@ -39,4 +39,19 @@ class KaldiGzFile(KaldiFile):
 class KaldiBytes(object):
     def __init__(self, bytes, *_, rxtype):
         self.bytes = bytes
-        self._rxtype = rxtype
+        self.rxtype = rxtype
+
+
+class KaldiBytesArk(KaldiBytes):
+    def __init__(self, dict):
+        super().__init__(dict, rxtype='ark')
+
+    @property
+    def bytes(self):
+        return b'\n'.join([
+            id.encode() + b' ' + b for id, b in self._bytes.items()
+        ])
+
+    @bytes.setter
+    def bytes(self, value):
+        self._bytes = value

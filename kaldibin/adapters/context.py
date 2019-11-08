@@ -82,7 +82,7 @@ def _prepare_args(kaldi_context, args):
 
 def _write_fifo(arg, fifo):
     write_handle = os.open(fifo, os.O_WRONLY | os.O_NOCTTY)
-    if type(arg) is KaldiBytes:
+    if type(arg) is KaldiBytes or issubclass(type(arg), KaldiBytes):
         os.write(write_handle, arg.bytes)
     else:
         subprocess.run(['cat'], stdin=arg.out_stream, stdout=write_handle, shell=False, close_fds=True)
@@ -90,7 +90,7 @@ def _write_fifo(arg, fifo):
 
 
 def _is_fifo(arg):
-    if type(arg) is KaldiBytes:
+    if type(arg) is KaldiBytes or issubclass(type(arg), KaldiBytes):
         return True
     return hasattr(arg, 'rxtype') and \
            hasattr(arg, 'out_stream') and \

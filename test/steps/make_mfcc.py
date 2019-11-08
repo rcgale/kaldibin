@@ -95,7 +95,7 @@ def main():
         print("{}: [info]: no segments file exists: assuming wav.scp indexed by utterance.".format(script_name))
         split_scps = ["{}/wav_{}.{}.scp".format(args.log_dir, name, n) for n in range(args.nj)]
 
-        wav_scp = KaldiFile(args.wav_scp)
+        wav_scp = KaldiFile(args.wav_scp, rxtype='scp')
         out_ark = "{}/raw_mfcc_{}.JOB.ark".format(args.mfcc_dir, name)
         out_scp = "{}/raw_mfcc_{}.JOB.scp".format(args.mfcc_dir, name)
         mfccs = kaldibin.compute_mfcc_feats(
