@@ -36,6 +36,44 @@ def nnet3_latgen_faster(
         word_symbol_table='',
         **args
     ):
+    '''
+    WARNING: INCOMPLETE WRAPPER IMPLEMENTATION
+
+    :param nnet:
+    :param fst:
+    :param features:
+    :param _:
+    :param acoustic_scale:
+    :param allow_partial:
+    :param beam:
+    :param beam_delta:
+    :param computation_debug:
+    :param debug_computation:
+    :param delta:
+    :param determinize_lattice:
+    :param extra_left_context:
+    :param extra_left_context_initial:
+    :param extra_right_context:
+    :param extra_right_context_final:
+    :param frame_subsampling_factor:
+    :param frames_per_chunk:
+    :param hash_ratio:
+    :param ivectors:
+    :param lattice_beam:
+    :param max_active:
+    :param max_mem:
+    :param min_active:
+    :param minimize:
+    :param online_ivector_period:
+    :param online_ivectors:
+    :param phone_determinize:
+    :param prune_interval:
+    :param utt2spk:
+    :param word_determinize:
+    :param word_symbol_table:
+    :param args:
+    :return:
+    '''
 
     return kaldibin._context.run(
         'src/nnet3bin/nnet3-latgen-faster',
