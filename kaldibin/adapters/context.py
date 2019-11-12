@@ -33,7 +33,7 @@ class KaldiContext(object):
     def run(self, executable, *args, input=None, wxtype, wxfilename):
         exe = os.path.join(self._kaldi_root, executable)
         prepared_args, pipe_handles = _prepare_args(self, args)
-        wxspecifier = '{}:{}'.format(wxtype, wxfilename) if wxtype is not None else wxfilename
+        wxspecifier = '{}:{}'.format(wxtype, wxfilename) if wxtype else wxfilename
         process = subprocess.Popen(
             [exe, *prepared_args, wxspecifier],
             stdin=subprocess.PIPE if input is not None else None,
@@ -67,12 +67,12 @@ def _prepare_args(kaldi_context, args):
             os.mkfifo(fifo_filename)
             kaldi_context._to_delete.append(fifo_filename)
             fifos.append(fifo_filename)
-            prepared.append('{}:{}'.format(arg.rxtype, fifo_filename))
+            prepared.append('{}:{}'.format(arg.rxtype, fifo_filename) if arg.rxtype else fifo_filename)
         elif _is_rwspecifier(arg):
             if hasattr(arg, "is_gz") and arg.is_gz:
                 prepared.append('{}:gunzip -c {}|'.format(arg.rxtype, arg.filename))
             elif arg.rxtype:
-                prepared.append('{}:{}'.format(arg.rxtype, arg.filename))
+                prepared.append('{}:{}'.format(arg.rxtype, arg.filename) if arg.rxtype else arg.filename)
             else:
                 prepared.append(arg.filename)
         else:

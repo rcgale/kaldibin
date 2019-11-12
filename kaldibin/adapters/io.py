@@ -12,10 +12,11 @@ class KaldiPipe(object):
     def close(self):
         self.wait()
 
+    @property
     def bytes(self):
-        if not hasattr(self, "__bytes"):
-            self.__bytes = self.out_stream.read()
-        return self.__bytes
+        if not hasattr(self, "_bytes"):
+            self._bytes = self.out_stream.read()
+        return self._bytes
 
 
 class KaldiFile(object):
@@ -48,7 +49,7 @@ class KaldiBytesArk(KaldiBytes):
 
     @property
     def bytes(self):
-        return b'\n'.join([
+        return b''.join([
             id.encode() + b' ' + b for id, b in self._bytes.items()
         ])
 

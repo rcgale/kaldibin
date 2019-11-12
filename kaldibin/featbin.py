@@ -1,6 +1,26 @@
 import kaldibin
 
 
+def compute_cmvn_stats(
+        feats,
+        *_,
+        binary=True,
+        spk2utt='',
+        weights='',
+        wxtype='ark',
+        wxfilename='-'
+):
+    return kaldibin._context.run(
+        'src/featbin/compute-cmvn-stats',
+        '--binary={}'.format('true' if binary else 'false'),
+        '--spk2utt={}'.format(spk2utt),
+        '--weights={}'.format(weights),
+        feats,
+        wxtype=wxtype,
+        wxfilename=wxfilename
+    )
+
+
 def compute_mfcc_feats(
         wavs,
         *_,
@@ -74,6 +94,15 @@ def compute_mfcc_feats(
         '--verbose={}'.format(verbose),
         '--config={}'.format(config),
         wavs,
+        wxtype=wxtype,
+        wxfilename=wxfilename
+    )
+
+
+def wav_copy(wav, *_, wxtype='ark', wxfilename='-'):
+    return kaldibin._context.run(
+        'src/featbin/wav-copy',
+        wav,
         wxtype=wxtype,
         wxfilename=wxfilename
     )
