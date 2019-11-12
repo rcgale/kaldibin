@@ -37,6 +37,8 @@ def online2_wav_nnet3_latgen_faster(
         wav,
         *_,
         max_active=2147483647,
+        max_mem=50000000,
+        online=True,
         beam=16.0,
         do_endpointing=False,
         frame_subsampling_factor=1,
@@ -69,11 +71,12 @@ def online2_wav_nnet3_latgen_faster(
 
     return kaldibin._context.run(
         "src/online2bin/online2-wav-nnet3-latgen-faster",
-        "--online=false",
+        "--online={}".format('true' if online else 'false'),
         "--do-endpointing={}".format('true' if do_endpointing else 'false'),
         "--config={}".format(config),
         "--frame-subsampling-factor={}".format(frame_subsampling_factor),
         "--max-active={}".format(max_active),
+        "--max-mem={}".format(max_mem),
         "--beam={}".format(beam),
         "--lattice-beam={}".format(lattice_beam),
         "--acoustic-scale={}".format(acoustic_scale),
