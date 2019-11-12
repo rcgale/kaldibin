@@ -84,6 +84,7 @@ def nnet3_latgen_faster(
         '--extra-right-context-final={}'.format(extra_right_context_final),
         '--minimize={}'.format('true' if minimize else 'false'),
         '--max-active={}'.format(max_active),
+        '--max-mem={}'.format(max_mem),
         '--min-active={}'.format(min_active),
         '--beam={}'.format(beam),
         '--lattice-beam={}'.format(lattice_beam),
