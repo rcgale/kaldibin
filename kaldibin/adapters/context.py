@@ -50,7 +50,7 @@ class KaldiContext(object):
             [exe, *prepared_args, wxspecifier],
             stdin=subprocess.PIPE if input is not None else None,
             stdout=subprocess.PIPE,
-            stderr=None,
+            stderr=subprocess.PIPE,
             close_fds=True,
         )
         if input is not None:
@@ -94,12 +94,16 @@ def _prepare_args(kaldi_context, args):
 
 def _write_fifo(arg, fifo):
     write_handle = os.open(fifo, os.O_WRONLY | os.O_NOCTTY)
-    if type(arg) is KaldiBytes or issubclass(type(arg), KaldiBytes):
+    if isinstance(arg, KaldiBytes):
         os.write(write_handle, arg.bytes)
-    else:
+    elif isinstance(arg, KaldiPipe):
         subprocess.run(['cat'], stdin=arg.out_stream, stdout=write_handle, shell=False, close_fds=True)
+    else:
+        raise NotImplementedError("Unexpected type in KaldiPipe: {}".format(type(arg)))
     os.close(write_handle)
     os.unlink(fifo)
+    if isinstance(arg, KaldiPipe):
+        arg.close()
 
 
 def _is_fifo(arg):

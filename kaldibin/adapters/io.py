@@ -1,16 +1,25 @@
-import gzip
 import os
 import subprocess
 
 
 class KaldiPipe(object):
-    def __init__(self, process, *_, rxtype):
-        self.wait = process.wait
-        self.out_stream = process.stdout
+    def __init__(self, process: subprocess.Popen, *_, rxtype):
+        self._process = process
         self.rxtype = rxtype
 
+    @property
+    def out_stream(self):
+        return self._process.stdout
+
+    @property
+    def err_stream(self):
+        return self._process.stderr
+
     def close(self):
-        self.wait()
+        self._process.wait()
+        if self._process.returncode:
+            stderr_text = self._process.stderr.read().decode()
+            raise ChildProcessError(stderr_text)
 
     @property
     def bytes(self):
