@@ -1,13 +1,16 @@
 import inspect
 import os
+import re
 import subprocess
 import sys
 import tempfile
-import threading
+import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from typing import Dict, Type, Callable
 
-import re
+import resource
 
 import kaldibin
 from kaldibin import magic
@@ -24,6 +27,8 @@ class KaldiContext(object):
         self._to_close = []
         self._to_delete = []
         self._kaldi_root = kaldi_root
+        max_file_handles, *_ = resource.getrlimit(resource.RLIMIT_NOFILE)
+        self._fifo_thread_pool = ThreadPoolExecutor(max_file_handles)
 
     def open(self):
         self._previous_context = kaldibin._context
@@ -59,7 +64,7 @@ class KaldiContext(object):
         # Run FIFO inputs as separate thread to avoid deadlock
         fifo_args = [arg for arg in args if _is_fifo(arg)]
         for arg, fifo in zip(fifo_args, pipe_handles):
-            threading.Thread(target=_write_fifo, args=(arg, fifo)).start()
+            self._fifo_thread_pool.submit(_write_fifo, arg, fifo)
 
         if wxfilename == '-':
             pipe_out = KaldiPipe(process, rxtype=wxtype)
@@ -93,17 +98,42 @@ def _prepare_args(kaldi_context, args):
 
 
 def _write_fifo(arg, fifo):
-    write_handle = os.open(fifo, os.O_WRONLY | os.O_NOCTTY)
-    if isinstance(arg, KaldiBytes):
-        os.write(write_handle, arg.bytes)
-    elif isinstance(arg, KaldiPipe):
-        subprocess.run(['cat'], stdin=arg.out_stream, stdout=write_handle, shell=False, close_fds=True)
-    else:
-        raise NotImplementedError("Unexpected type in KaldiPipe: {}".format(type(arg)))
-    os.close(write_handle)
-    os.unlink(fifo)
-    if isinstance(arg, KaldiPipe):
-        arg.close()
+    try:
+        with _write_handle_context(fifo) as write_handle:
+            if isinstance(arg, KaldiBytes):
+                os.write(write_handle, arg.bytes)
+            elif isinstance(arg, KaldiPipe):
+                subprocess.run(['cat'], stdin=arg.out_stream, stdout=write_handle, shell=False, close_fds=True)
+            else:
+                raise NotImplementedError("Unexpected type in KaldiPipe: {}".format(type(arg)))
+    except Exception as e:
+        print(e, file=sys.stderr)
+    finally:
+        if isinstance(arg, KaldiPipe):
+            arg.close()
+
+
+@contextmanager
+def _write_handle_context(fifo, retry_wait=1, retry_max=30):
+    for num_retries in range(len(retry_max)):
+        write_handle = None
+        try:
+            write_handle = os.open(fifo, os.O_WRONLY | os.O_NOCTTY)
+        except OSError as e:
+            if num_retries < retry_max and "Too many open files" in e:
+                time.sleep(retry_wait)
+                continue
+            else:
+                raise
+
+        try:
+            yield write_handle
+            return
+        finally:
+            if write_handle is not None:
+                os.close(write_handle)
+            if os.path.exists(fifo):
+                os.unlink(fifo)
 
 
 def _is_fifo(arg):
