@@ -18,8 +18,9 @@ _KALDI_ROOT = os.environ['KALDI_ROOT'] if 'KALDI_ROOT' in os.environ else None
 
 class KaldiContext(object):
     def __init__(self, kaldi_root=_KALDI_ROOT):
-        if not kaldi_root or not os.path.isdir(kaldi_root):
-            raise Exception('Kaldi root not found. Set the environment variable KALDI_ROOT.')
+        if not kaldi_root:
+            config = get_config() or {}
+            kaldi_root = config.get("kaldi_root")
         self._to_close = []
         self._to_delete = []
         self._kaldi_root = kaldi_root
@@ -37,6 +38,10 @@ class KaldiContext(object):
         kaldibin._context = self._previous_context
 
     def run(self, executable, *args, input=None, wxtype, wxfilename):
+        if not os.path.isdir(self._kaldi_root):
+            raise Exception('Kaldi root not found. Try running: \n\t'
+                            'kaldibin-config --kaldi-root /path/to/kaldi\n\n')
+
         exe = os.path.join(self._kaldi_root, executable)
         prepared_args, pipe_handles = _prepare_args(self, args)
         wxspecifier = '{}:{}'.format(wxtype, wxfilename) if wxtype else wxfilename
