@@ -34,7 +34,8 @@ class KaldiContext(object):
         for to_close in self._to_close:
             to_close.close()
         for to_delete in self._to_delete:
-            os.unlink(to_delete)
+            if os.path.exists(to_delete):
+                os.unlink(to_delete)
         kaldibin._context = self._previous_context
 
     def run(self, executable, *args, input=None, wxtype, wxfilename):
@@ -98,6 +99,7 @@ def _write_fifo(arg, fifo):
     else:
         subprocess.run(['cat'], stdin=arg.out_stream, stdout=write_handle, shell=False, close_fds=True)
     os.close(write_handle)
+    os.unlink(fifo)
 
 
 def _is_fifo(arg):
