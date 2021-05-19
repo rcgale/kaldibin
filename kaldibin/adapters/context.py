@@ -115,7 +115,7 @@ def _write_fifo(arg, fifo):
 
 @contextmanager
 def _write_handle_context(fifo, retry_wait=1, retry_max=30):
-    for num_retries in range(len(retry_max)):
+    for num_retries in range(retry_max):
         write_handle = None
         try:
             write_handle = os.open(fifo, os.O_WRONLY | os.O_NOCTTY)
