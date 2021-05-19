@@ -12,7 +12,6 @@ def lattice_1best(
     return kaldibin._context.run(
         "src/latbin/lattice-1best",
         *args,
-        lattice,
         wxtype="ark",
         wxfilename="-"
     )
