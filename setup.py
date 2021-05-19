@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name='kaldibin',
-    version='0.5.0',
+    version='0.6.0',
     author='Robert Gale',
     author_email='rcgale@gmail.com',
     packages=[
@@ -14,6 +14,15 @@ setuptools.setup(
     ],
     url='https://github.com/rcgale/kaldibin',
     description='Python wrappers for Kaldi executables. Still in a partially-implemented, proof-of-concept stage.',
-    install_requires=[],
+    install_requires=[
+        "docstring-parser==0.7.3"
+    ],
+    entry_points={
+        'console_scripts': [
+            'kaldi-compute-mfcc-feats=kaldibin.featbin:compute_mfcc_feats',
+            'kaldibin-config=kaldibin.adapters.context:configure',
+        ]
+    },
+
 )
 

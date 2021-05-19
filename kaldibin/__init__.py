@@ -2,7 +2,7 @@ import atexit
 import os
 
 from kaldibin.adapters.io import KaldiBytes, KaldiFile, KaldiGzFile, KaldiPipe, KaldiBytesArk
-from kaldibin.adapters.context import KaldiContext
+from kaldibin.adapters.context import KaldiContext, _magic_parse_args
 from kaldibin.featbin import compute_cmvn_stats, compute_mfcc_feats, wav_copy
 from kaldibin.latbin import lattice_1best, lattice_align_phones, lattice_align_words_lexicon, lattice_determinize,\
     lattice_to_ctm_conf, nbest_to_ctm

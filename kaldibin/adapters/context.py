@@ -1,10 +1,16 @@
+import inspect
 import os
 import subprocess
+import sys
 import tempfile
 import threading
 import uuid
+from typing import Dict, Type, Callable
+
+import re
 
 import kaldibin
+from kaldibin import magic
 from kaldibin.adapters.io import KaldiPipe, KaldiFile, KaldiBytes
 
 _KALDI_ROOT = os.environ['KALDI_ROOT'] if 'KALDI_ROOT' in os.environ else None
@@ -99,3 +105,84 @@ def _is_fifo(arg):
 
 def _is_rwspecifier(arg):
     return hasattr(arg, 'rxtype') and hasattr(arg, 'filename')
+
+
+def _prepare_value(parameter, value):
+    preparers: Dict[Type, Callable] = {
+        bool: lambda v: 'true' if v else 'false',
+    }
+
+    t = parameter.annotation
+    if parameter.annotation is inspect._empty:
+        t = type(value)
+
+    preparer = preparers.get(t, lambda v: v)
+    prepared = preparer(value)
+    return prepared
+
+
+def _magic_parse_args(func, **kwargs):
+    parameters = inspect.signature(func).parameters
+    positional = []
+    keyword = []
+    skip = ("wxtype", "wxfilename", "_")
+    for key, parameter in parameters.items():
+        if key in skip:
+            continue
+
+        value = kwargs.get(key)
+
+        if parameter.kind == inspect.Parameter.KEYWORD_ONLY:
+            if kwargs.get(key) == parameter.default:
+                continue
+            value = _prepare_value(parameter, value)
+            arg = '--{}={}'.format(key.replace("_", "-"), value)
+            keyword.append(arg)
+        else:
+            if kwargs.get(key) is None:
+                continue
+            arg = _prepare_value(parameter, value)
+            positional.append(arg)
+    return keyword + positional
+
+
+@magic.application
+def configure(*, kaldi_root):
+    """
+    Writes local configuration for the kaldibin package
+    :param _:
+    :param kaldi_root: The path to Kaldi, e.g. /Users/babbage/dev/kaldi
+    :return:
+    """
+    if not kaldi_root:
+        print("Must provide a value for --kaldi-root !", file=sys.stderr)
+        exit(1)
+
+    config = get_config() or {}
+    config["kaldi_root"] = kaldi_root
+    write_config(config)
+    print("Wrote config to {}".format(config_filename()))
+
+
+def get_config():
+    config_file = config_filename()
+    if not os.path.isfile(config_file):
+        return None
+    config = {}
+    with open(config_file) as f:
+        for line in f:
+            for key, value in re.findall("^\s*([^\s].*)\s*:\s*([^\s].*)\s*$", line):
+                config[key] = value
+    return config
+
+
+def write_config(config):
+    config_file = config_filename()
+    os.makedirs(os.path.dirname(config_file), exist_ok=True)
+    with open(config_file, "w") as f:
+        for key, value in config.items():
+            print("{}: {}".format(key, value), file=f)
+
+
+def config_filename():
+    return os.path.expanduser("~/.config/kaldibin/config.json")

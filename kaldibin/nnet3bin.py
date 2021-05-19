@@ -5,7 +5,7 @@ def nnet3_latgen_faster(
         nnet,
         fst,
         features,
-        *_,
+        *,
         acoustic_scale=0.1,
         allow_partial=False,
         beam=16,
@@ -75,28 +75,10 @@ def nnet3_latgen_faster(
     :return:
     '''
 
+    args = kaldibin._magic_parse_args(nnet3_latgen_faster, **locals())
     return kaldibin._context.run(
         'src/nnet3bin/nnet3-latgen-faster',
-        '--frames-per-chunk={}'.format(frames_per_chunk),
-        '--extra-left-context={}'.format(extra_left_context),
-        '--extra-right-context={}'.format(extra_right_context),
-        '--extra-left-context-initial={}'.format(extra_left_context_initial),
-        '--extra-right-context-final={}'.format(extra_right_context_final),
-        '--minimize={}'.format('true' if minimize else 'false'),
-        '--max-active={}'.format(max_active),
-        '--max-mem={}'.format(max_mem),
-        '--min-active={}'.format(min_active),
-        '--beam={}'.format(beam),
-        '--lattice-beam={}'.format(lattice_beam),
-        '--acoustic-scale={}'.format(acoustic_scale),
-        '--allow-partial={}'.format('true' if allow_partial else 'false'),
-        '--word-symbol-table={}'.format(word_symbol_table),
-        '--frame-subsampling-factor={}'.format(frame_subsampling_factor),
-        '--online-ivectors={}'.format(online_ivectors),
-        '--online-ivector-period={}'.format(online_ivector_period),
-        nnet,
-        fst,
-        features,
+        *args,
         wxtype="ark",
         wxfilename="-"
     )

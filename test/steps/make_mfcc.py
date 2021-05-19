@@ -1,66 +1,88 @@
-import argparse
 import os
 import shutil
 import sys
+from typing import Optional
 
 import kaldibin
-from kaldibin import KaldiFile
+from kaldibin import KaldiFile, magic
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Make MFCCs')
-    parser.add_argument('data')
-    parser.add_argument('log_dir', nargs="?", help="Directory for logging, defaults to [data]/log.")
-    parser.add_argument('mfcc_dir')
-    parser.add_argument('--nj', type=int, default=4)
-    parser.add_argument('--mfcc-config', default="conf/mfcc.conf")
-    parser.add_argument('--compress', type=bool, default=True)
-    parser.add_argument('--write-utt2num-frames', type=bool, default=False)
-    parser.add_argument('--feats-scp', help="Defaults to [data]/feats.scp")
-    parser.add_argument('--wav-scp', help="Defaults to [data]/wav.scp")
-    parser.add_argument('--backup-dir', help="Defaults to [data]/.backup")
-    parser.add_argument('--spk2warp', help="Defaults to [data]/spk2warp")
-    parser.add_argument('--utt2warp', help="Defaults to [data]/utt2warp")
-    parser.add_argument('--utt2spk', help="Defaults to [data]/utt2spk")
-    parser.add_argument('--segments', help="Defaults to [data]/segments")
-    args = parser.parse_args()
+@magic.application
+def make_mfcc(
+        data,
+        log_dir: Optional[str], # = "{data}/log",
+        mfcc_dir,
+        *,
+        nj=4,
+        mfcc_config="conf/mfcc.conf",
+        compress=True,
+        write_utt2num_frames=False,
+        feats_scp="{data}/feats.scp",
+        wav_scp="{data}/wav.scp",
+        backup_dir="{data}/.backup",
+        spk2warp="{data}/spk2warp",
+        utt2warp="{data}/utt2warp",
+        utt2spk="{data}/utt2spk",
+        segments="{data}/segments",
+):
+    """
+    Make MFCCs
+
+    :param data:
+    :param log_dir: Directory for logging
+    :param mfcc_dir:
+    :param nj:
+    :param mfcc_config:
+    :param compress:
+    :param write_utt2num_frames:
+    :param feats_scp: Location of feats.scp file
+    :param wav_scp: Location of wav.scp file
+    :param backup_dir: Location of backup directory
+    :param spk2warp: Location of spk2warp file
+    :param utt2warp: Location of utt2warp file
+    :param utt2spk: Location of utt2spk file
+    :param segments: Location of segments file
+    :return:
+    """
 
     # Being explicit and configurable with filenames conventions
-    if args.log_dir is None: args.log_dir = os.path.join(args.data, "log")
-    if args.feats_scp is None: args.feats_scp = os.path.join(args.data, "feats.scp")
-    if args.wav_scp is None: args.wav_scp = os.path.join(args.data, "wav.scp")
-    if args.backup_dir is None: args.backup_dir = os.path.join(args.data, ".backup")
-    if args.spk2warp is None: args.spk2warp = os.path.join(args.data, "spk2warp")
-    if args.utt2warp is None: args.utt2warp = os.path.join(args.data, "utt2warp")
-    if args.utt2spk is None: args.utt2spk = os.path.join(args.data, "utt2spk")
-    if args.segments is None: args.segments = os.path.join(args.data, "segments")
+    if "{data}" in log_dir: log_dir = log_dir.format(data=data)
+    if "{data}" in feats_scp: feats_scp = feats_scp.format(data=data)
+    if "{data}" in wav_scp: wav_scp = wav_scp.format(data=data)
+    if "{data}" in backup_dir: backup_dir = backup_dir.format(data=data)
+    if "{data}" in spk2warp: spk2warp = spk2warp.format(data=data)
+    if "{data}" in utt2warp: utt2warp = utt2warp.format(data=data)
+    if "{data}" in utt2spk: utt2spk = utt2spk.format(data=data)
+    if "{data}" in segments: segments = segments.format(data=data)
 
     script_name = os.path.basename(sys.argv[0])
-    name = os.path.basename(args.data)
+    name = os.path.basename(data)
 
-    os.makedirs(args.mfcc_dir, exist_ok=True)
-    os.makedirs(args.log_dir, exist_ok=True)
+    os.makedirs(mfcc_dir, exist_ok=True)
+    os.makedirs(log_dir, exist_ok=True)
 
-    if os.path.exists(args.feats_scp):
-        print("{}: moving {} to {}".format(script_name, args.feats_scp, args.backup_dir))
-        os.makedirs(args.backup_dir, exist_ok=True)
-        shutil.move(args.feats_scp, args.backup_dir)
+    if os.path.exists(feats_scp):
+        print("{}: moving {} to {}".format(script_name, feats_scp, backup_dir))
+        os.makedirs(backup_dir, exist_ok=True)
+        if os.path.exists(backup_dir):
+            shutil.rmtree(backup_dir)
+        shutil.move(feats_scp, backup_dir)
 
-    for required in [args.wav_scp, args.mfcc_config]:
+    for required in [wav_scp, mfcc_config]:
         if not os.path.exists(required):
             raise FileNotFoundError("{}: no such file {}".format(script_name, required))
 
     #TODO utils/validate_data_dir.sh --no-text --no-feats $data || exit 1from
 
     vtln_options = {}
-    if os.path.exists(args.spk2warp):
-        vtln_options["vtln_map"] = args.spk2warp
-        vtln_options["utt2spk"] = args.utt2spk
-    elif os.path.exists(args.utt2warp):
-        vtln_options["vtln_map"] = args.utt2warp
+    if os.path.exists(spk2warp):
+        vtln_options["vtln_map"] = spk2warp
+        vtln_options["utt2spk"] = utt2spk
+    elif os.path.exists(utt2warp):
+        vtln_options["vtln_map"] = utt2warp
 
     write_num_frames_options = {}
-    if args.write_utt2num_frames:
+    if write_utt2num_frames:
         # TODO: Touch this up
         write_num_frames_options["write_num_frames"] = "ark,t:$logdir/utt2num_frames.JOB"
 
@@ -75,9 +97,9 @@ def main():
     done
     '''
 
-    if os.path.isfile(args.segments):
+    if os.path.isfile(segments):
         print("{} [info]: segments file exists: using that.".format(script_name))
-        split_segments = ["{}/segments.{}".format(args.log_dir, name, n) for n in range(args.nj)]
+        split_segments = ["{}/segments.{}".format(log_dir, name, n) for n in range(nj)]
         #TODO
         '''
         
@@ -93,21 +115,23 @@ def main():
         '''
     else:
         print("{}: [info]: no segments file exists: assuming wav.scp indexed by utterance.".format(script_name))
-        split_scps = ["{}/wav_{}.{}.scp".format(args.log_dir, name, n) for n in range(args.nj)]
+        split_scps = ["{}/wav_{}.{}.scp".format(log_dir, name, n) for n in range(nj)]
 
-        wav_scp = KaldiFile(args.wav_scp, rxtype='scp')
-        out_ark = "{}/raw_mfcc_{}.JOB.ark".format(args.mfcc_dir, name)
-        out_scp = "{}/raw_mfcc_{}.JOB.scp".format(args.mfcc_dir, name)
+        wav_scp = KaldiFile(wav_scp, rxtype='scp')
+        out_ark = "{}/raw_mfcc_{}.JOB.ark".format(mfcc_dir, name)
+        out_scp = "{}/raw_mfcc_{}.JOB.scp".format(mfcc_dir, name)
+
         mfccs = kaldibin.compute_mfcc_feats(
             wav_scp,
             **vtln_options,
             verbose=2,
-            config=args.mfcc_config,
+            config=mfcc_config,
             wxtype="ark,scp",
             wxfilename="{},{}".format(out_ark, out_scp)
         )
 
-
         '''utils/split_scp.pl $scp $split_scps || exit 1;'''
+
+
 if __name__ == "__main__":
-    main()
+    make_mfcc()

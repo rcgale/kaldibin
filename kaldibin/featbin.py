@@ -1,21 +1,20 @@
 import kaldibin
+from kaldibin import magic
 
 
 def compute_cmvn_stats(
         feats,
-        *_,
+        *,
         binary=True,
         spk2utt='',
         weights='',
         wxtype='ark',
         wxfilename='-'
 ):
+    args = kaldibin._magic_parse_args(compute_cmvn_stats, **locals())
     return kaldibin._context.run(
         'src/featbin/compute-cmvn-stats',
-        '--binary={}'.format('true' if binary else 'false'),
-        '--spk2utt={}'.format(spk2utt),
-        '--weights={}'.format(weights),
-        feats,
+        *args,
         wxtype=wxtype,
         wxfilename=wxfilename
     )
@@ -23,8 +22,9 @@ def compute_cmvn_stats(
 
 def compute_mfcc_feats(
         wavs,
-        *_,
+        *,
         allow_downsample=False,
+        allow_upsample=False,
         blackman_coeff=0.42,
         cepstral_lifter=22,
         channel=-1,
@@ -59,50 +59,25 @@ def compute_mfcc_feats(
         wxtype='ark',
         wxfilename='-'
 ):
+    args = kaldibin._magic_parse_args(compute_mfcc_feats, **locals())
     return kaldibin._context.run(
         'src/featbin/compute-mfcc-feats',
-        '--allow-downsample={}'.format('true' if allow_downsample else 'false'),
-        '--blackman-coeff={}'.format(blackman_coeff),
-        '--cepstral-lifter={}'.format(cepstral_lifter),
-        '--channel={}'.format(channel),
-        '--debug-mel={}'.format('true' if debug_mel else 'false'),
-        '--dither={}'.format(dither),
-        '--energy-floor={}'.format(energy_floor),
-        '--frame-length={}'.format(frame_length),
-        '--frame-shift={}'.format(frame_shift),
-        '--high-freq={}'.format(high_freq),
-        '--htk-compat={}'.format('true' if htk_compat else 'false'),
-        '--low-freq={}'.format(low_freq),
-        '--min-duration={}'.format(min_duration),
-        '--num-ceps={}'.format(num_ceps),
-        '--num-mel-bins={}'.format(num_mel_bins),
-        '--output-format={}'.format(output_format),
-        '--preemphasis_coefficient={}'.format(preemphasis_coefficient),
-        '--raw-energy={}'.format('true' if raw_energy else 'false'),
-        '--remove-dc-offset={}'.format('true' if remove_dc_offset else 'false'),
-        '--round-to-power-of-two={}'.format('true' if round_to_power_of_two else 'false'),
-        '--sample-frequency={}'.format(sample_frequency),
-        '--snip-edges={}'.format('true' if snip_edges else 'false'),
-        '--subtract-mean={}'.format('true' if subtract_mean else 'false'),
-        '--use-energy={}'.format('true' if use_energy else 'false'),
-        '--utt2spk={}'.format(utt2spk),
-        '--vtln-high={}'.format(vtln_high),
-        '--vtln-low={}'.format(vtln_low),
-        '--vtln-map={}'.format(vtln_map),
-        '--vtln-warp={}'.format(vtln_warp),
-        '--window-type={}'.format(window_type),
-        '--verbose={}'.format(verbose),
-        '--config={}'.format(config),
-        wavs,
+        *args,
         wxtype=wxtype,
         wxfilename=wxfilename
     )
 
 
-def wav_copy(wav, *_, wxtype='ark', wxfilename='-'):
+def wav_copy(
+        wav,
+        *,
+        wxtype='ark',
+        wxfilename='-'
+):
+    args = kaldibin._magic_parse_args(compute_mfcc_feats, **locals())
     return kaldibin._context.run(
         'src/featbin/wav-copy',
-        wav,
+        *args,
         wxtype=wxtype,
         wxfilename=wxfilename
     )
